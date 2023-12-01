@@ -1,5 +1,5 @@
 EXE := trebuchet
-.phony: all run format
+.phony: all run clean format
 
 all: $(EXE)
 
