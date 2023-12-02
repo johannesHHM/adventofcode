@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static char *digitwords[] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
 
@@ -15,8 +16,10 @@ int digitword(char *line, char *digit)
     {
         if (*line != *digit)
             return 0;
+
         line++;
         digit++;
+
         if (*digit == '\0')
             return 1;
     }
@@ -31,29 +34,29 @@ char getdigitword(char *line)
     return 'n';
 }
 
-int parseline(char *line)
+char findfirstdigit(char *line, int direction)
 {
-    char left = 'n';
-    char right = 'n';
-
+    char digit;
     while (*line != '\0')
     {
-        char digit = 'n';
         if (isdigit(*line))
             digit = *line;
         else
             digit = getdigitword(line);
 
-        if (digit != 'n' && left == 'n')
-            left = digit;
-        else if (digit != 'n')
-            right = digit;
+        if (digit != 'n')
+            return digit;
 
-        line++;
+        line += direction;
     }
+    return 'n';
+}
 
-    if (right == 'n')
-        right = left;
+int parseline(char *line)
+{
+    char left, right;
+    left = findfirstdigit(line, 1);
+    right = findfirstdigit(line + strlen(line) - 2, -1);
 
     return combinedigits(left, right);
 }
