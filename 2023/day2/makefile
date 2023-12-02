@@ -1,10 +1,12 @@
-EXE := trebuchet
+EXE := cubes
+FLAGS := -Wall -Wextra
+
 .phony: all run clean format
 
 all: $(EXE)
 
 $(EXE): main.c
-	gcc -o $(EXE) main.c
+	gcc $(FLAGS) -o $(EXE) main.c
 
 run: $(EXE)
 	./$(EXE) input
