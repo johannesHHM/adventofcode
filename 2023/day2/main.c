@@ -2,6 +2,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+int colortoid(char c)
+{
+    switch (c)
+    {
+    case 'r':
+        return 0;
+    case 'g':
+        return 1;
+    case 'b':
+        return 2;
+    default:
+        return -1;
+    }
+}
+
+int colortolength(char c)
+{
+    switch (c)
+    {
+    case 'r':
+        return 3;
+    case 'g':
+        return 5;
+    case 'b':
+        return 4;
+    default:
+        return -1;
+    }
+}
+
 int parseline(char *line, int *limits, char powers)
 {
     int linelength;
@@ -10,7 +40,7 @@ int parseline(char *line, int *limits, char powers)
 
     char color;
     int gameid, number, power;
-    
+
     int minimum[3] = {0};
     int sums[3] = {0};
 
@@ -22,37 +52,21 @@ int parseline(char *line, int *limits, char powers)
     offset += bytesread;
 
     while (linelength > offset)
-    { 
-        sums[0] = 0; 
-        sums[1] = 0; 
-        sums[2] = 0; 
+    {
+        sums[0] = 0;
+        sums[1] = 0;
+        sums[2] = 0;
         do
         {
             if (sscanf(line + offset, " %d %c%n", &number, &color, &bytesread) != 2)
-            {
-                printf("error! %s", line + offset);
                 exit(0);
-            }
 
             offset += bytesread;
+            sums[colortoid(color)] += number;
+            offset += colortolength(color);
 
-            if (color == 'r')
-            {
-                sums[0] += number;
-                offset += 3;
-            }
-            else if (color == 'g')
-            {
-                sums[1] += number;
-                offset += 5;
-            }
-            else if (color == 'b')
-            {
-                sums[2] += number;
-                offset += 4;
-            }
         } while (*(line + offset - 1) != ';' && *(line + offset - 1) != '\n');
-        
+
         for (int i = 0; i < 3; i++)
             if (minimum[i] < sums[i])
                 minimum[i] = sums[i];
