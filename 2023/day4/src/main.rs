@@ -6,7 +6,7 @@ use std::{
     process::exit,
 };
 
-fn parse_card_first(card: String) -> u32 {
+fn parse_card(card: String) -> u32 {
     let card: Vec<String> = card.split("|").map(|s| s.to_string()).collect();
 
     let winning_numbers: Vec<u32> = card
@@ -46,7 +46,7 @@ fn parse_cards_second(reader: BufReader<File>) -> u32 {
     let mut card_id: u32 = 1;
 
     for line in cards {
-        let hits: u32 = parse_card_first(line);
+        let hits: u32 = parse_card(line);
         let current_card_count: u32 = card_counts.get(&card_id).unwrap().clone();
         for i in 1..hits + 1 {
             *card_counts.get_mut(&(card_id + i)).unwrap() += current_card_count;
@@ -71,7 +71,7 @@ fn main() -> io::Result<()> {
 
     for line in reader_first.lines() {
         let line: String = line?;
-        let hits: u32 = parse_card_first(line);
+        let hits: u32 = parse_card(line);
         if hits > 0 {
             card_sum += 2_u32.pow(hits - 1);
         };
