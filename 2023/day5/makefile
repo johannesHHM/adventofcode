@@ -14,6 +14,6 @@ run: $(EXE)
 clean:
 	rm $(EXE)
 
-format: main1.c main2.c
+format: main.c
 	clang-format -i --style=Microsoft main.c
 
