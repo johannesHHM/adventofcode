@@ -8,11 +8,8 @@ use std::{
 
 fn get_integer(line: &String) -> u64 {
     return line
-        .split(":")
-        .nth(1)
-        .unwrap()
         .chars()
-        .filter(|c| !c.is_whitespace())
+        .filter(|c| c.is_ascii_digit())
         .collect::<String>()
         .parse::<u64>()
         .unwrap();
