@@ -1,5 +1,5 @@
 EXE := mirage
-FLAGS := -O3
+FLAGS := -O3 -Wall -Wextra
 
 .phony: all run clean format
 

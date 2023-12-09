@@ -1,19 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 typedef struct
 {
     int *nums;
     int length;
 } row;
-
-typedef struct
-{
-    row **rows;
-    int buffsize;
-    int len;
-} rowlist;
 
 long nthtriangle(int num)
 {
@@ -22,28 +14,58 @@ long nthtriangle(int num)
     return num + nthtriangle(num - 1);
 }
 
-int solverow(row row)
+int solvepyramid(int *pyramid, int rowlen, int depth, char way)
 {
-    row.nums = realloc(row.nums, nthtriangle(row.length * sizeof(int)));
-    
-    int previous = 0;
-    for (int rc = 1; rc < row.length; rc++)
+    int lasts[depth], results[depth], start;
+    if (way)
+        start = -1;
+    else
+        start = -rowlen - 1;
+
+    for (int i = 0; i < depth; i++)
     {
-        int start = previous + row.length - rc + 1;
-        printf("start: %d\n", start);
-        for (int i = 0; i < row.length - rc; i++)
+        if (way)
+            start += rowlen - i;
+        else
+            start += rowlen - i + 1;
+        lasts[i] = pyramid[start];
+    }
+    
+    results[depth - 1] = 0;
+    if (way)
+        for (int i = depth - 2; i >= 0; i--)
+            results[i] = lasts[i] + results[i+1];
+    else
+        for (int i = depth - 2; i >= 0; i--)
+            results[i] = lasts[i] - results[i+1];
+    
+    return results[0];
+}
+
+int makepyramid(row *row)
+{
+    row->nums = realloc(row->nums, nthtriangle(row->length) * sizeof(int));
+    int depth = 1; 
+    int previous = 0;
+    for (int rc = 1; rc < row->length; rc++)
+    {
+        depth++;
+        int start = previous + row->length - rc + 1;
+        char allnil = 1;
+        for (int i = 0; i < row->length - rc; i++)
         {
             int curr = start + i;
             int left = previous + i;
             int right = previous + i + 1;
-            printf("%d = %d - %d\n", curr, right, left);
-            row.nums[curr] = row.nums[right] - row.nums[left];
-            printf("%d\n", row.nums[curr]);
+            row->nums[curr] = row->nums[right] - row->nums[left];
+            if (row->nums[curr] != 0)
+                allnil = 0;
         }
+        if (allnil)
+            return depth;
         previous = start;
-        printf("\n");
     }
-    return 0;
+    return row->length;
 }
 
 row *parseline(char *line)
@@ -61,7 +83,6 @@ row *parseline(char *line)
     int count = 0;
     while (sscanf(line + off, "%d %n", &res->nums[count], &read) == 1)
     {
-        // printf("found: %d, off: %d\n", res->nums[count], off);
         off += read;
         count++;
     }
@@ -69,27 +90,6 @@ row *parseline(char *line)
     res->length = numcount;
     
     return res;
-}
-
-rowlist *createrowlist(int buffsize)
-{
-    rowlist *res;
-    res = malloc(sizeof(rowlist));
-    res->rows = malloc(buffsize * sizeof(row *));
-    res->buffsize = buffsize;
-    res->len = 0;
-    return res;
-}
-
-void addrow(rowlist *list, row *element)
-{
-    if (list->len >= list->buffsize)
-    {
-        list->buffsize *= 2;
-        list->rows = realloc(list->rows, list->buffsize * sizeof(row *));
-    }
-    list->rows[list->len] = element;
-    list->len++;
 }
 
 void parsefile(char *filepath)
@@ -105,16 +105,21 @@ void parsefile(char *filepath)
         exit(0);
     }
 
-    rowlist *list = createrowlist(256);
-
+    long sumf = 0;
+    long sums = 0;
     while (getline(&line, &l, file) != -1) 
     {
         row *r = parseline(line);
-        solverow(*r);
-        addrow(list, r);
+        int depth;
+        depth = makepyramid(r);
+        sumf += solvepyramid(r->nums, r->length, depth, 1);
+        sums += solvepyramid(r->nums, r->length, depth, 0);
+        free(r->nums);
+        free(r);
     }
 
-    printf("%ld\n", nthtriangle(10));
+    printf("sum first: %ld\n", sumf);
+    printf("sum second: %ld\n", sums);
 
    fclose(file);
 }
@@ -126,8 +131,6 @@ int main(int argc, char *argv[])
         printf("Give input file as an argument.");
         exit(0);
     }
-
     parsefile(argv[1]);
-
     exit(0);
 }
