@@ -1,20 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#define CACHEBUFF 256
 #define GRID(x, y) (grid[(y)*WIDTH + (x)])
+
+#define CYCLES 1000000000
 
 int WIDTH, HEIGHT;
 char *grid;
 
-void printgrid()
+#define CACHE(i) (cache[(i)*WIDTH * HEIGHT])
+int cachelen = 0;
+int cachebuff = 256;
+char *cache;
+
+void cachegrid()
 {
-    for (int y = 0; y < HEIGHT; y++)
+    if (cachelen == cachebuff)
     {
-        for (int x = 0; x < WIDTH; x++)
-            printf("%c", grid[y*WIDTH+x]);
-        printf("\n");
+        cachebuff *= 2;
+        cache = realloc(cache, cachebuff * WIDTH * HEIGHT * sizeof(char));
     }
-    printf("\n");
+    memcpy(&CACHE(cachelen), grid, WIDTH * HEIGHT * sizeof(char));
+    cachelen++;
 }
 
 int countlines(char *filepath)
@@ -64,7 +73,7 @@ void sinknorth()
 
 void sinksouth()
 {
-    for (int y = WIDTH - 1; y >= 0; y--)
+    for (int y = HEIGHT - 1; y >= 0; y--)
         for (int x = 0; x < WIDTH; x++)
         {
             if (GRID(x, y) == 'O')
@@ -80,7 +89,7 @@ void sinksouth()
 
 void sinkwest()
 {
-    for (int y = 0; y < WIDTH; y++)
+    for (int y = 0; y < HEIGHT; y++)
         for (int x = 0; x < WIDTH; x++)
         {
             if (GRID(x, y) == 'O')
@@ -96,13 +105,13 @@ void sinkwest()
 
 void sinkeast()
 {
-    for (int y = 0; y < WIDTH; y++)
+    for (int y = 0; y < HEIGHT; y++)
         for (int x = WIDTH - 1; x >= 0; x--)
         {
             if (GRID(x, y) == 'O')
             {
                 int tx = x;
-                while (tx + 1 >= 0 && GRID(tx + 1, y) == '.')
+                while (tx + 1 < WIDTH && GRID(tx + 1, y) == '.')
                     tx++;
                 GRID(x, y) = '.';
                 GRID(tx, y) = 'O';
@@ -125,7 +134,7 @@ long countload()
 void parsefile(char *filepath)
 {
     FILE *file;
-    
+
     file = fopen(filepath, "r");
     if (!file)
     {
@@ -135,10 +144,12 @@ void parsefile(char *filepath)
     WIDTH = countwidth(filepath);
     HEIGHT = countlines(filepath);
     grid = malloc(WIDTH * HEIGHT * sizeof(char));
-    
+    cache = malloc(CACHEBUFF * WIDTH * HEIGHT * sizeof(char));
+
     char c;
     int i = 0;
-    do {
+    do
+    {
         c = fgetc(file);
         if (c != '\n')
         {
@@ -147,19 +158,31 @@ void parsefile(char *filepath)
         }
         if (feof(file))
             break;
-    }while (1);
-    
-    for (int i = 0; i < 1000000000; i++)
+    } while (1);
+
+    for (int i = 0; i < CYCLES; i++)
     {
         sinknorth();
+
+        if (i == 0)
+            printf("Sum of load part 1: %ld\n", countload());
+
         sinkwest();
         sinksouth();
         sinkeast();
-    }
-     
-    printf("sum: %ld\n", countload());
 
+        for (int j = 0; j < cachelen; j++)
+            if (memcmp(grid, &CACHE(j), WIDTH * HEIGHT) == 0)
+                i = CYCLES - ((CYCLES - i) % (i - j));
+
+        cachegrid();
+    }
+    
+    printf("Sum of load part 2: %ld\n", countload());
+    
     fclose(file);
+    free(grid);
+    free(cache);
 }
 
 int main(int argc, char *argv[])
