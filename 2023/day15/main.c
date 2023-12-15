@@ -19,9 +19,7 @@ void initboxes()
 {
     boxes = malloc(BOXLEN * sizeof(box));
     for (int i = 0; i < BOXLEN; i++)
-    {
         boxes[i].lenslen = 0;
-    }
 }
 
 void setlens(box *box, char *label, int focal)
