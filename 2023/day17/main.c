@@ -157,7 +157,7 @@ void parsefile(char *filepath)
     }
 
     setgridsize(filepath);
-    costgrid = malloc(WIDTH * HEIGHT * sizeof(node));
+    costgrid = malloc(WIDTH * HEIGHT * sizeof(int));
 
     readgrid(file);
 
